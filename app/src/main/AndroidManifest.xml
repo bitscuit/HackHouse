@@ -19,7 +19,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".List"
+            android:name=".ListActivity"
             android:exported="true"
             android:label="@string/title_activity_list"
             android:parentActivityName=".MainActivity"

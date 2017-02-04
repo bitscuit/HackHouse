@@ -2,29 +2,21 @@ package com.pdp11.qhacks.hackhouse;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.InputType;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 
-public class List extends AppCompatActivity {
+public class ListActivity extends AppCompatActivity {
 
     // list of items
     ArrayList<String> items;
@@ -49,10 +41,10 @@ public class List extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // Pop-up dialog box for user to enter the to-do name
-                final AlertDialog.Builder builder = new AlertDialog.Builder(List.this);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
                 builder.setTitle("Enter Item");
                 // Set up the input
-                final EditText input = new EditText(List.this);
+                final EditText input = new EditText(ListActivity.this);
                 // Specify the type of input expected
                 input.setInputType(InputType.TYPE_CLASS_TEXT);
                 builder.setView(input);

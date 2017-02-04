@@ -124,6 +124,15 @@ public class MainActivity extends AppCompatActivity {
         };
         mDatabase.addValueEventListener(todoListener);
 
+        lView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
+                Intent intent = new Intent(MainActivity.this, ListActivity.class);
+                intent.putExtra("todoName", lView.getItemAtPosition(pos).toString());
+                startActivity(intent);
+            }
+        });
+
         // Delete list item that is clicked
         lView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
