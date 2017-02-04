@@ -3,14 +3,12 @@ package com.pdp11.qhacks.hackhouse;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,11 +16,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
-//import com.google.firebase.auth.FirebaseAuth;
-//import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,16 +29,16 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    ArrayList<String> todoList;
-    TodoAdapter adapter;
-    ListView lView;
+    private ArrayList<String> todoList;
+    private TodoAdapter adapter;
+    private ListView lView;
+    private String todoTitle;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
     private String mUsername;
     private String mPhotoUrl;
-
     private DatabaseReference mDatabase;
 
     @Override
@@ -60,6 +54,16 @@ public class MainActivity extends AppCompatActivity {
         adapter = new TodoAdapter(todoList, this);
         lView = (ListView) findViewById(R.id.todo_list_view);
         lView.setAdapter(adapter);
+
+        // Gets the user email. Not sure what assert does, but the login should have been correct in order to get to this screen.
+        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        assert mFirebaseUser != null;
+        final String name = mFirebaseUser.getDisplayName();
+        String email = mFirebaseUser.getEmail();
+        assert email != null;
+
+        // Get user email and use that as a database document title
+        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -81,14 +85,11 @@ public class MainActivity extends AppCompatActivity {
                     imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 
                     // Set up the buttons
-                    builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+                    builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            String todoTitle = input.getText().toString();
-                            mDatabase.child(todoTitle).setValue("nothing");
-                            Log.d("testTodo", "it wrote!");
-//                            todoList.add(input.getText().toString());
-//                            adapter.notifyDataSetChanged();
+                            todoTitle = input.getText().toString();
+                            mDatabase.child(todoTitle).setValue(0);
                             imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
                         }
                     });
@@ -103,11 +104,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mDatabase = FirebaseDatabase.getInstance().getReference();
         ValueEventListener todoListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Loop over each child in the root branch.
+                // Loop over each child in the user's account branch.
                 if (todoList.size() != 0) {
                     todoList.clear();
                 }
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
                 Intent intent = new Intent(MainActivity.this, ListActivity.class);
-                intent.putExtra("todoName", lView.getItemAtPosition(pos).toString());
+                intent.putExtra("todoTitle", lView.getItemAtPosition(pos).toString());
                 startActivity(intent);
             }
         });
