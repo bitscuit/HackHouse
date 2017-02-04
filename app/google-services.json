@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "153433001847",
+    "firebase_url": "https://hackhouse-f6d3f.firebaseio.com",
+    "project_id": "hackhouse-f6d3f",
+    "storage_bucket": "hackhouse-f6d3f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:153433001847:android:129bbe9801d9646b",
+        "android_client_info": {
+          "package_name": "com.pdp11.qhacks.hackhouse"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "153433001847-h0mc9rqiuh2jln2jaf3mp1osfrt7hdkr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKqgLxwG7utNub5S7kCJts1U-I8XdIOQA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "153433001847-h0mc9rqiuh2jln2jaf3mp1osfrt7hdkr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
