@@ -1,13 +1,25 @@
 package com.pdp11.qhacks.hackhouse;
 
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,15 +30,51 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        final ArrayList<String> todoList = new ArrayList<>();
+        final TodoAdapter adapter = new TodoAdapter(todoList, this);
+        final ListView lView = (ListView) findViewById(R.id.todo_list_view);
+        lView.setAdapter(adapter);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+
+                    // Pop-up dialog box for user to enter the to-do name
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setTitle("Enter Title of TODO");
+                    // Set up the input
+                    final EditText input = new EditText(MainActivity.this);
+                    // Specify the type of input expected
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    builder.setView(input);
+
+                    // The next few lines gives the input area the focus so the user can type. It also brings up the keyboard.
+                    input.requestFocus();
+                    final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+
+                    // Set up the buttons
+                    builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            todoList.add(input.getText().toString());
+                            adapter.notifyDataSetChanged();
+                            imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
+                            dialog.cancel();    // User clicks cancel, dialog box goes away
+                        }
+                    });
+                    builder.show(); // Shows the dialog box.
             }
         });
-    }
+
+    } // end onCreate method
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
