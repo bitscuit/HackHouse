@@ -3,6 +3,7 @@ package com.pdp11.qhacks.hackhouse;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
@@ -14,8 +15,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 //import com.google.firebase.auth.FirebaseAuth;
 //import com.google.firebase.auth.FirebaseUser;
@@ -104,8 +108,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Loop over each child in the root branch.
+                if (todoList.size() != 0) {
+                    todoList.clear();
+                }
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    // TODO check if snap.getKey() is already in todoList. If it is, don't add
                     todoList.add(snap.getKey());
                 } // end for loop
                 adapter.notifyDataSetChanged();
@@ -118,6 +124,30 @@ public class MainActivity extends AppCompatActivity {
         };
         mDatabase.addValueEventListener(todoListener);
 
+        // Delete list item that is clicked
+        lView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                           final int pos, final long id) {
+                final AlertDialog.Builder b = new AlertDialog.Builder(MainActivity.this);
+                b.setIcon(android.R.drawable.ic_dialog_alert);
+                b.setMessage("Delete?");
+                b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String todoTitle = lView.getItemAtPosition(pos).toString();
+                        mDatabase.child(todoTitle).removeValue();
+                    }
+                });
+                b.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                    }
+                });
+                b.show();
+
+                return true;
+            }
+        });
     } // end onCreate method
 
     private void initializeFirebase() {
