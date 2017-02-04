@@ -18,6 +18,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".List"
+            android:label="@string/title_activity_list"
+            android:parentActivityName=".MainActivity"
+            android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pdp11.qhacks.hackhouse.MainActivity" />
+        </activity>
     </application>
 
 </manifest>
