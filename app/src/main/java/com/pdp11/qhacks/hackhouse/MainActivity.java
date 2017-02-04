@@ -80,8 +80,11 @@ public class MainActivity extends AppCompatActivity {
                     builder.setPositiveButton("Create", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            todoList.add(input.getText().toString());
-                            adapter.notifyDataSetChanged();
+                            String todoTitle = input.getText().toString();
+                            mDatabase.child(todoTitle).setValue("nothing");
+                            Log.d("testTodo", "it wrote!");
+//                            todoList.add(input.getText().toString());
+//                            adapter.notifyDataSetChanged();
                             imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
                         }
                     });
@@ -97,11 +100,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        ValueEventListener ssListener = new ValueEventListener() {
+        ValueEventListener todoListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Loop over each child in the root branch.
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    // TODO check if snap.getKey() is already in todoList. If it is, don't add
                     todoList.add(snap.getKey());
                 } // end for loop
                 adapter.notifyDataSetChanged();
@@ -112,7 +116,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
-        mDatabase.addValueEventListener(ssListener);
+        mDatabase.addValueEventListener(todoListener);
+
     } // end onCreate method
 
     private void initializeFirebase() {
