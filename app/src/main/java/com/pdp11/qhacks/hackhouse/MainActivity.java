@@ -60,10 +60,14 @@ public class MainActivity extends AppCompatActivity {
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         assert mFirebaseUser != null;
         final String name = mFirebaseUser.getDisplayName();
+        assert mFirebaseUser != null;
+        final String email = mFirebaseUser.getEmail();
 
         // Get user account name and use that as a database document title
         mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
         mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles");
+
+        mDatabaseUser.child("Email").setValue(email);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -89,8 +93,9 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             todoTitle = input.getText().toString();
-                            mDatabaseUser.child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
-                            mDatabaseList.child(todoTitle).setValue(0);
+                            mDatabaseUser.child("Todo List").child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
+                            mDatabaseList.child(todoTitle).child("List Items").setValue(0);	// Adds list item branch whith no list items
+                            mDatabaseList.child(todoTitle).child("Collaborators").child(name).setValue(0); // Adds collaborators branch wiht the username as defualt
                             imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
                         }
                     });
@@ -113,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 if (todoList.size() != 0) {
                     todoList.clear();
                 }
-                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                for (DataSnapshot snap : dataSnapshot.child("Todo List").getChildren()) {
                     todoList.add(snap.getKey());    // Adds "Users -> Michael Tanel -> 458, Assignment3" for example
                 } // end for loop
                 adapter.notifyDataSetChanged();
@@ -146,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String todoTitle = lView.getItemAtPosition(pos).toString();
-                        mDatabaseUser.child(todoTitle).removeValue();
+                        mDatabaseUser.child("Todo List").child(todoTitle).removeValue();
                         mDatabaseList.child(todoTitle).removeValue();
                     }
                 });
