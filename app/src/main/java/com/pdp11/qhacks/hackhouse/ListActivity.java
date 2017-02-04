@@ -35,7 +35,8 @@ public class ListActivity extends AppCompatActivity {
     ItemAdapter adapter;
     ListView lView;
 
-    private DatabaseReference mDatabase;
+    private DatabaseReference mDatabaseList;
+    private DatabaseReference mDatabaseUser;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -62,7 +63,9 @@ public class ListActivity extends AppCompatActivity {
         assert mFirebaseUser != null;
         final String name = mFirebaseUser.getDisplayName();
 
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
+        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle);
+        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
+
         ValueEventListener todoListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -81,7 +84,7 @@ public class ListActivity extends AppCompatActivity {
 
             }
         };
-        mDatabase.addValueEventListener(todoListener);
+        mDatabaseList.addValueEventListener(todoListener);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -110,7 +113,7 @@ public class ListActivity extends AppCompatActivity {
                         String addedItem = input.getText().toString();
                         Map<String, Object> itemMap = new HashMap<>();
                         itemMap.put(addedItem, 0);
-                        mDatabase.updateChildren(itemMap);
+                        mDatabaseList.updateChildren(itemMap);
 
                         imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
                     }
@@ -137,7 +140,7 @@ public class ListActivity extends AppCompatActivity {
                 b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String todoItem = lView.getItemAtPosition(pos).toString();
-                        mDatabase.child(todoItem).removeValue();
+                        mDatabaseList.child(todoItem).removeValue();
                     }
                 });
                 b.setNegativeButton("No", new DialogInterface.OnClickListener() {

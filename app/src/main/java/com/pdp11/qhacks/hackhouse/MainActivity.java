@@ -39,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseUser mFirebaseUser;
     private String mUsername;
     private String mPhotoUrl;
-    private DatabaseReference mDatabase;
+    private DatabaseReference mDatabaseUser;
+    private DatabaseReference mDatabaseList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,20 +51,19 @@ public class MainActivity extends AppCompatActivity {
 
         initializeFirebase();
 
-        todoList = new ArrayList<>();
+        todoList = new ArrayList<>();   // todoList Titles
         adapter = new TodoAdapter(todoList, this);
         lView = (ListView) findViewById(R.id.todo_list_view);
         lView.setAdapter(adapter);
 
-        // Gets the user email. Not sure what assert does, but the login should have been correct in order to get to this screen.
+        // Gets the user's google account name. Not sure what assert does, but the login should have been correct in order to get to this screen.
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         assert mFirebaseUser != null;
         final String name = mFirebaseUser.getDisplayName();
-        String email = mFirebaseUser.getEmail();
-        assert email != null;
 
-        // Get user email and use that as a database document title
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
+        // Get user account name and use that as a database document title
+        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
+        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles");
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -89,7 +89,8 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             todoTitle = input.getText().toString();
-                            mDatabase.child(todoTitle).setValue(0);
+                            mDatabaseUser.child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
+                            mDatabaseList.child(todoTitle).setValue(0);
                             imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
                         }
                     });
@@ -104,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Reads database on a data change
         ValueEventListener todoListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -112,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
                     todoList.clear();
                 }
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    todoList.add(snap.getKey());
+                    todoList.add(snap.getKey());    // Adds "Users -> Michael Tanel -> 458, Assignment3" for example
                 } // end for loop
                 adapter.notifyDataSetChanged();
             }
@@ -122,13 +124,13 @@ public class MainActivity extends AppCompatActivity {
 
             }
         };
-        mDatabase.addValueEventListener(todoListener);
+        mDatabaseUser.addValueEventListener(todoListener);
 
         lView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
                 Intent intent = new Intent(MainActivity.this, ListActivity.class);
-                intent.putExtra("todoTitle", lView.getItemAtPosition(pos).toString());
+                intent.putExtra("todoTitle", lView.getItemAtPosition(pos).toString());  // pass the todoTitle into ListActivity
                 startActivity(intent);
             }
         });
@@ -144,7 +146,8 @@ public class MainActivity extends AppCompatActivity {
                 b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         String todoTitle = lView.getItemAtPosition(pos).toString();
-                        mDatabase.child(todoTitle).removeValue();
+                        mDatabaseUser.child(todoTitle).removeValue();
+                        mDatabaseList.child(todoTitle).removeValue();
                     }
                 });
                 b.setNegativeButton("No", new DialogInterface.OnClickListener() {
