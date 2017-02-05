@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
 import android.content.Context;
@@ -15,6 +18,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -31,12 +35,15 @@ import java.util.Map;
 public class ListActivity extends AppCompatActivity {
 
     // list of items
-    ArrayList<String> items;
-    ItemAdapter adapter;
-    ListView lView;
+    private ArrayList<String> items;
+    private ItemAdapter adapter;
+    private ListView lView;
+    private String todoTitle;
 
     private DatabaseReference mDatabaseList;
     private DatabaseReference mDatabaseUser;
+    private DatabaseReference mDatabaseCollab;
+    private DatabaseReference mDatabaseRoot;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -56,15 +63,17 @@ public class ListActivity extends AppCompatActivity {
         lView.setAdapter(adapter);
 
         Intent extras = getIntent();
-        final String todoTitle = extras.getStringExtra("todoTitle");
+        todoTitle = extras.getStringExtra("todoTitle");
 
         // Gets the user email. Not sure what assert does, but the login should have been correct in order to get to this screen.
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         assert mFirebaseUser != null;
         final String name = mFirebaseUser.getDisplayName();
 
-        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle);
-        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
+        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle).child("List Items");
+        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name).child("Todo List");
+        mDatabaseCollab = FirebaseDatabase.getInstance().getReference().child("Users");
+        mDatabaseRoot = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle).child("Collaborators");
 
         ValueEventListener todoListener = new ValueEventListener() {
             @Override
@@ -155,6 +164,89 @@ public class ListActivity extends AppCompatActivity {
         });
     } // end onCreate method
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_add_collaborator) {
+            // Pop-up dialog box for user to enter the to-do name
+            final AlertDialog.Builder builder = new AlertDialog.Builder(ListActivity.this);
+            builder.setTitle("Enter Collaborator");
+            // Set up the input
+            final EditText input = new EditText(ListActivity.this);
+            // Specify the type of input expected
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            builder.setView(input);
+
+            // The next few lines gives the input area the focus so the user can type. It also brings up the keyboard.
+            input.requestFocus();
+            final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+
+            // Add collaborator button
+            builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    final String collab = input.getText().toString().trim();
+
+                    // Adds collaborator in "List Titles -> TodoList" and adds TodoList in Users
+                    mDatabaseCollab.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            boolean nameFound = false;
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                if (snapshot.getKey().trim().equals(collab)) {
+
+                                    // Adds todoTitle to the Users TodoList
+                                    Log.d("collaborator", "Inside for loop " + snapshot.getKey());
+                                    Map<String, Object> itemMap = new HashMap<>();
+                                    itemMap.put(todoTitle, 0);
+                                    mDatabaseCollab.child(collab).child("Todo List").updateChildren(itemMap);
+
+                                    // Adds the collaborator name to the list title
+                                    Map<String, Object> todoItemMap = new HashMap<>();
+                                    todoItemMap.put(collab, 0);
+                                    mDatabaseRoot.updateChildren(todoItemMap);
+                                    nameFound = true;
+                                }
+                            }
+                            // Flag checks if the username is found
+                            if (!nameFound) {
+                                Toast.makeText(ListActivity.this, "This is not a valid username", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                    imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    imm.hideSoftInputFromWindow(input.getWindowToken(), 0);
+                    dialog.cancel();    // User clicks cancel, dialog box goes away
+                }
+            });
+            builder.show(); // Shows the dialog box.
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 
 } // end ListActivity

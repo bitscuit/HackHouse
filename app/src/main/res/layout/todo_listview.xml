@@ -15,6 +15,7 @@
         android:paddingStart="8dp"
         android:paddingTop="20dp"
         android:paddingBottom="20dp"
+        android:maxLines='3'
         android:textSize="18sp"
         android:textStyle="bold" />
 
