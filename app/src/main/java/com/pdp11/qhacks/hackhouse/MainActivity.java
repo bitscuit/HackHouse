@@ -9,6 +9,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -41,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private String mPhotoUrl;
     private DatabaseReference mDatabaseUser;
     private DatabaseReference mDatabaseList;
+    private DatabaseReference mDatabaseRoot;
+
+    private ArrayList<String> collabList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         // Get user account name and use that as a database document title
         mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
         mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles");
+        mDatabaseRoot = FirebaseDatabase.getInstance().getReference();
 
         mDatabaseUser.child("Email").setValue(email);
 
@@ -150,9 +155,37 @@ public class MainActivity extends AppCompatActivity {
                 b.setMessage("Delete?");
                 b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        String todoTitle = lView.getItemAtPosition(pos).toString();
-                        mDatabaseUser.child("Todo List").child(todoTitle).removeValue();
-                        mDatabaseList.child(todoTitle).removeValue();
+                        final String todoTitle = lView.getItemAtPosition(pos).toString();
+//                        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
+//                        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles");
+
+                        collabList = new ArrayList<>();
+                        Log.d("collaborator", "We here???");
+                        // Adds collaborator in "List Titles -> TodoList" and adds TodoList in Users
+                        mDatabaseRoot.child("List Titles").child(todoTitle).child("Collaborators").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                boolean isDeleted = false;
+                                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                    // Retrieves a list of collaborators
+                                    collabList.add(snapshot.getKey());
+                                    Log.d("collaborator", "Names: " + snapshot.getKey());
+                                    mDatabaseRoot.child("Users").child(snapshot.getKey()).child("Todo List").child(todoTitle).removeValue();
+                                    isDeleted = true;
+                                }
+                                if (isDeleted) {
+                                    mDatabaseUser.child("Todo List").child(todoTitle).removeValue();
+                                    mDatabaseList.child(todoTitle).removeValue();
+                                }
+
+                            }
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+
+
                     }
                 });
                 b.setNegativeButton("No", new DialogInterface.OnClickListener() {
