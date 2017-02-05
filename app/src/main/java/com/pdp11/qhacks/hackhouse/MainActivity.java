@@ -97,11 +97,12 @@ public class MainActivity extends AppCompatActivity {
                     builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            todoTitle = input.getText().toString() + ";" + name;
+                            todoTitle = input.getText().toString();
 
                             if (todoTitle.contains(";")) {
                                 Toast.makeText(MainActivity.this, "Try again without the following character: \";\"", Toast.LENGTH_LONG).show();
                             } else {
+                                todoTitle += ";" + name;
                                 mDatabaseUser.child("Todo List").child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
                                 mDatabaseList.child(todoTitle).child("List Items").setValue(0);	// Adds list item branch whith no list items
                                 mDatabaseList.child(todoTitle).child("Collaborators").child(name).setValue(0); // Adds collaborators branch wiht the username as defualt
