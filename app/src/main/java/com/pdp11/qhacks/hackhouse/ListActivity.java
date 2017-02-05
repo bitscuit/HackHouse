@@ -39,6 +39,8 @@ public class ListActivity extends AppCompatActivity {
     private ItemAdapter adapter;
     private ListView lView;
     private String todoTitle;
+    private String myName;
+    private String ownerName;
 
     private DatabaseReference mDatabaseList;
     private DatabaseReference mDatabaseUser;
@@ -62,18 +64,20 @@ public class ListActivity extends AppCompatActivity {
         lView = (ListView) findViewById(R.id.item_list_view);
         lView.setAdapter(adapter);
 
-        Intent extras = getIntent();
-        todoTitle = extras.getStringExtra("todoTitle");
-
-        // Gets the user email. Not sure what assert does, but the login should have been correct in order to get to this screen.
+        // Gets the user's google account name. Not sure what assert does, but the login should have been correct in order to get to this screen.
         mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         assert mFirebaseUser != null;
-        final String name = mFirebaseUser.getDisplayName();
+        myName = mFirebaseUser.getDisplayName();
 
-        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle).child("List Items");
-        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name).child("Todo List");
+        Intent extras = getIntent();
+        String[] extra = extras.getStringExtra("todoTitle").split(";");
+        todoTitle = extra[0];
+        ownerName = extra[1];
+
+        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle + ";" + ownerName).child("List Items");
+        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(ownerName).child("Todo List");
         mDatabaseCollab = FirebaseDatabase.getInstance().getReference().child("Users");
-        mDatabaseRoot = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle).child("Collaborators");
+        mDatabaseRoot = FirebaseDatabase.getInstance().getReference().child("List Titles").child(todoTitle + ";" + ownerName).child("Collaborators");
 
         ValueEventListener todoListener = new ValueEventListener() {
             @Override
@@ -86,6 +90,7 @@ public class ListActivity extends AppCompatActivity {
                     items.add(snap.getKey());
                 } // end for loop
                 adapter.notifyDataSetChanged();
+
             }
 
             @Override
@@ -94,6 +99,32 @@ public class ListActivity extends AppCompatActivity {
             }
         };
         mDatabaseList.addValueEventListener(todoListener);
+
+        ValueEventListener todoListener2 = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                // Add all of collaborators
+                boolean isThere = false;
+                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    if (snap.getKey().equals(myName)) {
+                        isThere = true;
+                    }
+                } // end for loop
+                adapter.notifyDataSetChanged();
+
+                if (!isThere) {
+                    finish();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        };
+        mDatabaseRoot.addValueEventListener(todoListener2);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -211,7 +242,7 @@ public class ListActivity extends AppCompatActivity {
                                     // Adds todoTitle to the Users TodoList
                                     Log.d("collaborator", "Inside for loop " + snapshot.getKey());
                                     Map<String, Object> itemMap = new HashMap<>();
-                                    itemMap.put(todoTitle, 0);
+                                    itemMap.put(todoTitle + ";" + ownerName, 0);
                                     mDatabaseCollab.child(collab).child("Todo List").updateChildren(itemMap);
 
                                     // Adds the collaborator name to the list title
@@ -244,9 +275,29 @@ public class ListActivity extends AppCompatActivity {
             });
             builder.show(); // Shows the dialog box.
             return true;
+        } else if (id == R.id.action_view_collaborator) {
+            Intent iCollab = new Intent(ListActivity.this, CollaboratorActivity.class);
+            iCollab.putExtra("todoTitle", todoTitle + ";" + ownerName);
+            startActivityForResult(iCollab, 1001);
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("requestCode", requestCode + " " + resultCode);
+        if (requestCode == 1001) {
+            if(resultCode == RESULT_OK) {
+                // Gets the user's google account name. Not sure what assert does, but the login should have been correct in order to get to this screen.
+                mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                assert mFirebaseUser != null;
+                String name = mFirebaseUser.getDisplayName();
+                todoTitle = data.getStringExtra("todoTitle");
+            } else if (resultCode == 1002) {
+                finish();
+            }
+        }
     }
 
 } // end ListActivity

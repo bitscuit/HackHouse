@@ -31,7 +31,13 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".CollaboratorActivity"
+            android:exported="true"
+            android:label="@string/title_activity_collaborator"
+            android:parentActivityName=".ListActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

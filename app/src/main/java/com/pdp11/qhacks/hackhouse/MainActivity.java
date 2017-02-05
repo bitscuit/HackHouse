@@ -10,8 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -45,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference mDatabaseRoot;
 
     private ArrayList<String> collabList;
+    private String[] args;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                     builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            todoTitle = input.getText().toString();
+                            todoTitle = input.getText().toString() + ";" + name;
                             mDatabaseUser.child("Todo List").child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
                             mDatabaseList.child(todoTitle).child("List Items").setValue(0);	// Adds list item branch whith no list items
                             mDatabaseList.child(todoTitle).child("Collaborators").child(name).setValue(0); // Adds collaborators branch wiht the username as defualt
@@ -124,7 +123,8 @@ public class MainActivity extends AppCompatActivity {
                     todoList.clear();
                 }
                 for (DataSnapshot snap : dataSnapshot.child("Todo List").getChildren()) {
-                    todoList.add(snap.getKey());    // Adds "Users -> Michael Tanel -> 458, Assignment3" for example
+                    args = snap.getKey().split(";");
+                    todoList.add(args[0]);    // Adds "Users -> Michael Tanel -> 458, Assignment3" for example
                 } // end for loop
                 adapter.notifyDataSetChanged();
             }
@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pos, long id) {
                 Intent intent = new Intent(MainActivity.this, ListActivity.class);
-                intent.putExtra("todoTitle", lView.getItemAtPosition(pos).toString());  // pass the todoTitle into ListActivity
+                intent.putExtra("todoTitle", lView.getItemAtPosition(pos).toString() + ";" + args[1]);  // pass the todoTitle into ListActivity
                 startActivity(intent);
             }
         });
@@ -155,27 +155,27 @@ public class MainActivity extends AppCompatActivity {
                 b.setMessage("Delete?");
                 b.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        final String todoTitle = lView.getItemAtPosition(pos).toString();
+                        todoTitle = lView.getItemAtPosition(pos).toString();
 //                        mDatabaseUser = FirebaseDatabase.getInstance().getReference().child("Users").child(name);
 //                        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles");
 
                         collabList = new ArrayList<>();
                         Log.d("collaborator", "We here???");
                         // Adds collaborator in "List Titles -> TodoList" and adds TodoList in Users
-                        mDatabaseRoot.child("List Titles").child(todoTitle).child("Collaborators").addListenerForSingleValueEvent(new ValueEventListener() {
+
+                        mDatabaseRoot.child("List Titles").child(todoTitle + ";" + name).child("Collaborators").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 boolean isDeleted = false;
                                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                                     // Retrieves a list of collaborators
                                     collabList.add(snapshot.getKey());
-                                    Log.d("collaborator", "Names: " + snapshot.getKey());
-                                    mDatabaseRoot.child("Users").child(snapshot.getKey()).child("Todo List").child(todoTitle).removeValue();
+                                    mDatabaseRoot.child("Users").child(snapshot.getKey()).child("Todo List").child(todoTitle + ";" + name).removeValue();
                                     isDeleted = true;
                                 }
                                 if (isDeleted) {
-                                    mDatabaseUser.child("Todo List").child(todoTitle).removeValue();
-                                    mDatabaseList.child(todoTitle).removeValue();
+                                    mDatabaseUser.child("Todo List").child(todoTitle + ";" + name).removeValue();
+                                    mDatabaseList.child(todoTitle + ";" + name).removeValue();
                                 }
 
                             }
@@ -216,25 +216,4 @@ public class MainActivity extends AppCompatActivity {
         }
     } // end initializeFirebase method
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_add_collaborator) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 }

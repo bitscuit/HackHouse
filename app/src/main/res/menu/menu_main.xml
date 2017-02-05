@@ -7,4 +7,10 @@
         android:orderInCategory="100"
         android:title="@string/action_add_colaborator"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_view_collaborator"
+        android:orderInCategory="100"
+        android:title="@string/action_view_collaborator"
+        app:showAsAction="never" />
 </menu>

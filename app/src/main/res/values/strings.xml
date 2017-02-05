@@ -3,4 +3,6 @@
     <string name="action_add_colaborator">Add Colaborator</string>
     <string name="title_activity_list">List</string>
     <string name="title_activity_login">LoginActivity</string>
+    <string name="title_activity_collaborator">CollaboratorActivity</string>
+    <string name="action_view_collaborator">View Collaborator</string>
 </resources>
