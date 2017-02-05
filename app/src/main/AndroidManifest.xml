@@ -10,7 +10,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name"
+            android:label="Your Todo's"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,7 +21,7 @@
         <activity
             android:name=".ListActivity"
             android:exported="true"
-            android:label="@string/title_activity_list"
+            android:label="Your Todo Items"
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
@@ -35,7 +35,7 @@
         <activity
             android:name=".CollaboratorActivity"
             android:exported="true"
-            android:label="@string/title_activity_collaborator"
+            android:label="Collaborators"
             android:parentActivityName=".ListActivity"
             android:theme="@style/AppTheme.NoActionBar" />
     </application>

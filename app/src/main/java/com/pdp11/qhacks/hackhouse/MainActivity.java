@@ -15,6 +15,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -97,9 +98,14 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             todoTitle = input.getText().toString() + ";" + name;
-                            mDatabaseUser.child("Todo List").child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
-                            mDatabaseList.child(todoTitle).child("List Items").setValue(0);	// Adds list item branch whith no list items
-                            mDatabaseList.child(todoTitle).child("Collaborators").child(name).setValue(0); // Adds collaborators branch wiht the username as defualt
+
+                            if (todoTitle.contains(";")) {
+                                Toast.makeText(MainActivity.this, "Try again without the following character: \";\"", Toast.LENGTH_LONG).show();
+                            } else {
+                                mDatabaseUser.child("Todo List").child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
+                                mDatabaseList.child(todoTitle).child("List Items").setValue(0);	// Adds list item branch whith no list items
+                                mDatabaseList.child(todoTitle).child("Collaborators").child(name).setValue(0); // Adds collaborators branch wiht the username as defualt
+                            }
                             imm.hideSoftInputFromWindow(input.getWindowToken(), 0); // Hides keyboard
                         }
                     });
@@ -160,7 +166,6 @@ public class MainActivity extends AppCompatActivity {
 //                        mDatabaseList = FirebaseDatabase.getInstance().getReference().child("List Titles");
 
                         collabList = new ArrayList<>();
-                        Log.d("collaborator", "We here???");
                         // Adds collaborator in "List Titles -> TodoList" and adds TodoList in Users
 
                         mDatabaseRoot.child("List Titles").child(todoTitle + ";" + name).child("Collaborators").addListenerForSingleValueEvent(new ValueEventListener() {
