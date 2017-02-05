@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
                             if (todoTitle.contains(";")) {
                                 Toast.makeText(MainActivity.this, "Try again without the following character: \";\"", Toast.LENGTH_LONG).show();
+                                todoTitle = "";
                             } else {
                                 todoTitle += ";" + name;
                                 mDatabaseUser.child("Todo List").child(todoTitle).setValue(0);     // Adds the todoTitle to the User's document
